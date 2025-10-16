@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
 import numpy as np
 
 # Page configuration
@@ -10,16 +9,12 @@ st.set_page_config(page_title="Player Wellness Monitoring", layout="wide")
 # App title
 st.title("Player Wellness Monitoring")
 
-# Fixed Excel file path
-file_path = r"C:\Users\asus\Desktop\app\monitoraggio_benessere.xlsx"
+# Google Sheets link (export in Excel format)
+google_sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFwYSTjIfIi0-cI2QlAJ9BecEeGOY1td43S8lY2av3vj2D2Z1Wd7m79V3pMS4om1IrWpDhrc66dnGk/pub?output=xlsx"
 
-# Check if file exists
-if not os.path.exists(file_path):
-    st.error(f"Excel file not found at: {file_path}")
-    st.info("Please make sure the file exists and the path is correct.")
-else:
-    # Load data
-    df = pd.read_excel(file_path)
+# Try loading data
+try:
+    df = pd.read_excel(google_sheet_url)
     df.columns = [c.strip().capitalize() for c in df.columns]
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
 
@@ -125,7 +120,7 @@ else:
             value_name="Value"
         )
         df_melt["Value_jitter"] = df_melt["Value"] + np.random.uniform(-0.1, 0.1, len(df_melt))
-        df_melt["Date_str"] = df_melt["Date"].dt.strftime("%d %b %Y")
+        df_melt["Date_str"] = df_melt["Date"].dt.strftime("%d %b")
 
         # Trend chart
         fig = px.line(
@@ -159,3 +154,6 @@ else:
         st.subheader("Average values")
         avg = df_player[["Physical", "Psychological", "Nutrition", "Sleep"]].mean()
         st.write(avg.to_frame("Average").style.format("{:.0f}"))
+
+except Exception as e:
+    st.error(f"❌ Could not load data from Google Sheets.\n\n{e}")
